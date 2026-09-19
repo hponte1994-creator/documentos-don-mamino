@@ -16,6 +16,8 @@ const CONFIG_TIPO: Record<TipoDocumento, { etiqueta: string; endpoint: string; l
 
 type EstadoItem = 'en_cola' | 'comprimiendo' | 'leyendo' | 'listo' | 'advertencia' | 'error';
 
+type SelloManual = 'AZUL' | 'ROJO' | 'SIN_SELLO';
+
 type ItemSubida = {
   id: string;
   tipo: TipoDocumento;
@@ -25,6 +27,7 @@ type ItemSubida = {
   estado: EstadoItem;
   resumen?: string;
   error?: string;
+  selloManual?: SelloManual | null;
 };
 
 const MAX_CONCURRENTE = 3;
@@ -55,6 +58,7 @@ function resumirResultado(tipo: TipoDocumento, resultado: any): { resumen: strin
 export default function SubirClient({ nombreUsuario }: { nombreUsuario: string }) {
   const router = useRouter();
   const [tipo, setTipo] = useState<TipoDocumento>('FACTURA');
+  const [selloManual, setSelloManual] = useState<SelloManual | null>(null);
   const [items, setItems] = useState<ItemSubida[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const enVueloRef = useRef(0);
@@ -93,6 +97,7 @@ export default function SubirClient({ nombreUsuario }: { nombreUsuario: string }
 
       const formData = new FormData();
       formData.append('archivo', archivoParaSubir);
+      if (item.selloManual) formData.append('selloManual', item.selloManual);
 
       const config = CONFIG_TIPO[item.tipo];
       const respuesta = await fetch(config.endpoint, { method: 'POST', body: formData });
@@ -119,6 +124,7 @@ export default function SubirClient({ nombreUsuario }: { nombreUsuario: string }
       archivo,
       previewUrl: URL.createObjectURL(archivo),
       estado: 'en_cola' as const,
+      selloManual: tipo === 'FACTURA' ? selloManual : null,
     }));
     const listaActualizada = [...nuevos, ...itemsRef.current];
     itemsRef.current = listaActualizada;
@@ -171,6 +177,34 @@ export default function SubirClient({ nombreUsuario }: { nombreUsuario: string }
             </button>
           ))}
         </div>
+
+        {tipo === 'FACTURA' && (
+          <div className="mt-3">
+            <p className="mb-2 text-sm font-medium text-gray-700">
+              Sello del documento <span className="text-gray-400">(opcional, tú lo ves mejor que la IA)</span>
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {(
+                [
+                  { valor: null, etiqueta: '🤖 Auto' },
+                  { valor: 'AZUL' as const, etiqueta: '🔵 Azul' },
+                  { valor: 'ROJO' as const, etiqueta: '🔴 Rojo' },
+                  { valor: 'SIN_SELLO' as const, etiqueta: '⚪ Ninguno' },
+                ] as const
+              ).map((op) => (
+                <button
+                  key={op.etiqueta}
+                  onClick={() => setSelloManual(op.valor)}
+                  className={`rounded-lg border-2 px-2 py-2 text-xs font-semibold transition ${
+                    selloManual === op.valor ? 'border-marca bg-marca text-white' : 'border-gray-200 bg-white text-gray-600'
+                  }`}
+                >
+                  {op.etiqueta}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button
           onClick={() => inputRef.current?.click()}

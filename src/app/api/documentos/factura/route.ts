@@ -13,6 +13,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Falta la imagen de la factura' }, { status: 400 });
   }
 
-  const factura = await procesarFactura({ archivo, ctx: { usuarioId: sesion.id, tiendaId: sesion.tiendaId } });
+  const selloManualRaw = formData.get('selloManual');
+  const selloManual =
+    selloManualRaw === 'AZUL' || selloManualRaw === 'ROJO' || selloManualRaw === 'SIN_SELLO' ? selloManualRaw : undefined;
+
+  const factura = await procesarFactura({ archivo, selloManual, ctx: { usuarioId: sesion.id, tiendaId: sesion.tiendaId } });
   return NextResponse.json(factura);
 }

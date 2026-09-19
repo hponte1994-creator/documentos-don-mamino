@@ -57,14 +57,19 @@ const MAPA_ACCION = {
   SIN_SELLO: { estadoContable: 'SIN_SELLO', accionContable: 'PENDIENTE_REVISION' },
 } as const;
 
-export async function procesarFactura(params: { archivo: File; ctx: ContextoUsuario }) {
+export async function procesarFactura(params: {
+  archivo: File;
+  selloManual?: 'AZUL' | 'ROJO' | 'SIN_SELLO';
+  ctx: ContextoUsuario;
+}) {
   const { url, pathname } = await subirImagen(params.archivo, 'facturas');
   const { base64, mediaType } = await archivoABase64(params.archivo);
 
   try {
     const extraido = await extraerFactura(base64, mediaType);
     const lineas = Array.isArray(extraido.lineas) ? (extraido.lineas as any[]) : [];
-    const selloColor = (extraido.sello_color as string) || 'SIN_SELLO';
+    // El colaborador tiene el papel en la mano: si marcó el sello manualmente, eso manda sobre lo que "vea" la IA en la foto.
+    const selloColor = params.selloManual || (extraido.sello_color as string) || 'SIN_SELLO';
     const mapa = MAPA_ACCION[selloColor as keyof typeof MAPA_ACCION] || MAPA_ACCION.SIN_SELLO;
 
     await upsertProveedor(extraido.proveedor_ruc as string, extraido.proveedor_razon_social as string);
