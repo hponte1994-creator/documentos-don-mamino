@@ -120,7 +120,9 @@ export default function SubirClient({ nombreUsuario }: { nombreUsuario: string }
       previewUrl: URL.createObjectURL(archivo),
       estado: 'en_cola' as const,
     }));
-    setItems((prev) => [...nuevos, ...prev]);
+    const listaActualizada = [...nuevos, ...itemsRef.current];
+    itemsRef.current = listaActualizada;
+    setItems(listaActualizada);
     colaRef.current.push(...nuevos.map((n) => n.id));
     intentarSiguiente();
   }
