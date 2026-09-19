@@ -1,6 +1,7 @@
-export function formatearSoles(valor: number | string | null | undefined): string {
-  const num = typeof valor === 'string' ? parseFloat(valor) : valor;
-  if (num === null || num === undefined || Number.isNaN(num)) return 'S/ 0.00';
+// Acepta number, string o Prisma.Decimal (o null/undefined).
+export function formatearSoles(valor: unknown): string {
+  const num = valor === null || valor === undefined ? NaN : Number(valor);
+  if (Number.isNaN(num)) return 'S/ 0.00';
   return `S/ ${num.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 

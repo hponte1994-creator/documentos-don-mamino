@@ -29,7 +29,12 @@ async function leerSesion(token: string | undefined) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/login') || pathname.startsWith('/api/auth') || pathname.startsWith('/_next')) {
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/setup') ||
+    pathname.startsWith('/_next')
+  ) {
     return NextResponse.next();
   }
 

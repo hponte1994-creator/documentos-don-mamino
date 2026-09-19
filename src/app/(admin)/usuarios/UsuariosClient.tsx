@@ -61,6 +61,17 @@ export default function UsuariosClient({ usuariosIniciales, tiendasIniciales }: 
     await recargarUsuarios();
   }
 
+  async function cambiarPassword(u: Usuario) {
+    const nueva = prompt(`Nueva contraseña para ${u.username}:`);
+    if (!nueva) return;
+    await fetch(`/api/usuarios/${u.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: u.nombre, rol: u.rol, tiendaId: u.tiendaId, activo: u.activo, password: nueva }),
+    });
+    alert('Contraseña actualizada');
+  }
+
   async function crearTienda() {
     if (!nombreTienda.trim()) return;
     const res = await fetch('/api/tiendas', {
@@ -135,9 +146,12 @@ export default function UsuariosClient({ usuariosIniciales, tiendasIniciales }: 
                 <td className="px-3 py-2">{u.rol === 'ADMIN' ? 'Administrador' : 'Colaborador'}</td>
                 <td className="px-3 py-2">{tiendas.find((t) => t.id === u.tiendaId)?.nombre || '-'}</td>
                 <td className="px-3 py-2">{u.activo ? <span className="text-green-700">Activo</span> : <span className="text-gray-400">Inactivo</span>}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 space-x-2">
                   <button onClick={() => toggleActivo(u)} className="text-xs font-semibold text-marca underline">
                     {u.activo ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button onClick={() => cambiarPassword(u)} className="text-xs font-semibold text-gray-500 underline">
+                    Cambiar contraseña
                   </button>
                 </td>
               </tr>
